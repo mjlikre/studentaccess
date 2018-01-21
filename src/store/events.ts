@@ -4,6 +4,7 @@ export const SET_SELECTED = 'SET_SELECTED';
 
 export interface EventsState {
   selected: string;
+  list: any[];
 }
 
 type SetSelected = Action & {
@@ -12,7 +13,7 @@ type SetSelected = Action & {
 
 type All = SetSelected;
 
-export default function (state: EventsState = { selected: null }, action: All) {
+export default function (state: EventsState = { selected: null, list: [] }, action: All) {
   switch (action.type) {
     case SET_SELECTED:
       return {
@@ -27,7 +28,11 @@ export default function (state: EventsState = { selected: null }, action: All) {
 
 
 export const getEvents = createFeatureSelector<EventsState>('events');
+export const getEventsList = createSelector(
+  getEvents,
+  (events) => events.list,
+);
 export const getSelected = createSelector(
   getEvents,
-  (events: EventsState) => events.selected,
+  (events) => events.selected,
 );

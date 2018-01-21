@@ -6,7 +6,8 @@ import {
   LoadingController
 } from 'ionic-angular';
 import { Store, createFeatureSelector, createSelector } from '@ngrx/store';
-import { EventsState, SET_SELECTED, getSelected } from '../../store/events';
+import { EventsState, SET_SELECTED, getSelected, getEvents, getEventsList } from '../../store/events';
+import { LOAD } from '../../store';
 
 import { Store as OldStore } from '../../providers/store';
 import { Log } from '../../providers/log';
@@ -36,10 +37,15 @@ export class Events {
     private store$: Store<AppState>,
   ) {
     this.selected = store$.select(getSelected);
+    // this.events = store$.select(getEventsList);
   }
 
   async ionViewDidLoad() {
     await this.loading.present();
+    // this.store$.dispatch({
+    //   type: LOAD,
+    //   payload: 'EVENTS',
+    // });
     try {
       let events = await this.oldStore.get('EVENTS');
       this.events = events.events;
