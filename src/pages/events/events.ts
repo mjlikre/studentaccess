@@ -5,17 +5,23 @@ import {
   Loading,
   LoadingController
 } from 'ionic-angular';
+import { Store, createFeatureSelector, createSelector } from '@ngrx/store';
+import { EventsState, SET_SELECTED, getSelected } from '../../store/events';
 
-import { Store } from '../../providers/store';
+import { Store as OldStore } from '../../providers/store';
 import { Log } from '../../providers/log';
 
 import { expand } from '../../components/animations';
+
+interface AppState {
+  events: EventsState;
+}
 
 @IonicPage()
 @Component({
   selector: 'page-events',
   templateUrl: 'events.html',
-  animations: [ expand ],
+  animations: [expand],
 })
 export class Events {
   public events;
@@ -25,26 +31,28 @@ export class Events {
   constructor(
     private nav: NavController,
     private loadingCtrl: LoadingController,
-    private store: Store,
+    private oldStore: OldStore,
     private log: Log,
-  ){}
+    private store$: Store<AppState>,
+  ) {
+    this.selected = store$.select(getSelected);
+  }
 
-  async ionViewDidLoad(){
+  async ionViewDidLoad() {
     await this.loading.present();
     try {
-      let events = await this.store.get('EVENTS');
+      let events = await this.oldStore.get('EVENTS');
       this.events = events.events;
-    } catch(err){
+    } catch (err) {
       this.log.warn(err);
     }
     this.loading.dismiss();
   }
-  goSelected(id){
-    if( this.selected === id ){
-      this.selected = '';
-    } else {
-      this.selected = id;
-    }
+  goSelected(id) {
+    this.store$.dispatch({
+      type: SET_SELECTED,
+      id,
+    });
   }
 
 }

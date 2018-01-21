@@ -24,13 +24,13 @@
               {{ item.calc_subject }}
             </ion-card-header>
             <ion-card-content
-              [@expand]="!!item.calc_text && item.ev_id === selected"
+              [@expand]="!!item.calc_text && item.ev_id === (selected | async)"
               [class.gray]="item.ev_date_start === store.today"
             >
               {{ item.calc_text }}
             </ion-card-content>
 
-            <ion-list [@expand]="item.ev_id === selected && (!!item.calc_ev_time_start || !!item.calc_location)">
+            <ion-list [@expand]="item.ev_id === (selected | async) && (!!item.calc_ev_time_start || !!item.calc_location)">
               <ion-item ion-row text-wrap color="secondary" [hidden]="!item.calc_ev_time_start">
                 <ion-col>
                   {{ 'EVENTS.TIME' | translate }}:
