@@ -14,8 +14,8 @@ import { IonicStorageModule } from '@ionic/storage';
 import { StoreModule } from '@ngrx/store';
 import * as app from '../store';
 
-// import { EffectsModule } from '@ngrx/effects';
-// import Effects from '../effects';
+import { EffectsModule } from '@ngrx/effects';
+import Effects from '../effects';
 
 import { StudentAccess } from './app';
 
@@ -51,7 +51,7 @@ export function createTranslateLoader(http: HttpClient) {
     }),
     HttpClientModule,
     StoreModule.forRoot(app),
-    // EffectsModule.forRoot([Effects]),
+    EffectsModule.forRoot([Effects]),
   ],
   bootstrap: [IonicApp],
   entryComponents: [StudentAccess],

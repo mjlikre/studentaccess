@@ -6,7 +6,7 @@ import { of } from 'rxjs/Observable/of';
 import { Store as OldStore } from '../providers/store';
 
 @Injectable()
-export default class {
+export default class Effects {
   constructor(private actions$: Actions, private oldStore: OldStore) { }
 
   @Effect() load = this.actions$.ofType('LOAD').pipe(
