@@ -6,8 +6,10 @@ import {
   LoadingController
 } from 'ionic-angular';
 import { Store, createFeatureSelector, createSelector } from '@ngrx/store';
-import { EventsState, SET_SELECTED, getSelected, getEvents, getEventsList } from '../../store/events';
-import { LOAD } from '../../store';
+import { filter } from 'rxjs/operators';
+
+import * as fromRoot from '../../store';
+import * as fromEvents from '../../store/events';
 
 import { Store as OldStore } from '../../providers/store';
 import { Log } from '../../providers/log';
@@ -15,7 +17,7 @@ import { Log } from '../../providers/log';
 import { expand } from '../../components/animations';
 
 interface AppState {
-  events: EventsState;
+  events: fromEvents.EventsState;
 }
 
 @IonicPage()
@@ -25,8 +27,9 @@ interface AppState {
   animations: [expand],
 })
 export class Events {
-  public events;
-  public selected;
+  public events$: Store<any[]>;
+  public selected$: Store<string|null>;
+  public today$: Store<string>
   private loading: Loading = this.loadingCtrl.create();
 
   constructor(
@@ -35,30 +38,26 @@ export class Events {
     private oldStore: OldStore,
     private log: Log,
     private store$: Store<AppState>,
-  ) {
-    this.selected = store$.select(getSelected);
-    // this.events = store$.select(getEventsList);
-  }
+  ) { }
 
   async ionViewDidLoad() {
     await this.loading.present();
-    // this.store$.dispatch({
-    //   type: LOAD,
-    //   payload: 'EVENTS',
-    // });
-    try {
-      let events = await this.oldStore.get('EVENTS');
-      this.events = events.events;
-    } catch (err) {
-      this.log.warn(err);
-    }
-    this.loading.dismiss();
-  }
-  goSelected(id) {
-    this.store$.dispatch({
-      type: SET_SELECTED,
-      id,
-    });
+
+    this.selected$ = this.store$.select(fromEvents.getSelected);
+    this.events$ = this.store$.select(fromEvents.getEventsList);
+    this.today$ = this.store$.select(fromRoot.getToday);
+
+    this.store$.dispatch(new fromEvents.Load());
+
+    this.store$
+      .select(fromEvents.getEventsLoaded)
+      .pipe(filter(loaded => loaded))
+      .subscribe(loaded => {
+        this.loading.dismiss();
+      });
   }
 
+  goSelected(id) {
+    this.store$.dispatch(new fromEvents.SetSelected(id));
+  }
 }

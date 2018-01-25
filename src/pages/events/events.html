@@ -16,21 +16,21 @@
         <ion-list>
 
           <ion-card text-wrap
-            *ngFor="let item of events"
+            *ngFor="let item of events$ | async"
           >
             <ion-card-header tappable text-wrap (click)="goSelected(item.ev_id)"
-            [class.gray]="item.ev_date_start === store.today">
+            [class.gray]="item.ev_date_start === (today$ | async)">
               <b [hidden]="!item.calc_ev_date_start">{{ item.calc_ev_date_start }}: </b>
               {{ item.calc_subject }}
             </ion-card-header>
             <ion-card-content
-              [@expand]="!!item.calc_text && item.ev_id === (selected | async)"
-              [class.gray]="item.ev_date_start === store.today"
+              [@expand]="!!item.calc_text && item.ev_id === (selected$ | async)"
+              [class.gray]="item.ev_date_start === (today$ | async)"
             >
               {{ item.calc_text }}
             </ion-card-content>
 
-            <ion-list [@expand]="item.ev_id === (selected | async) && (!!item.calc_ev_time_start || !!item.calc_location)">
+            <ion-list [@expand]="item.ev_id === (selected$ | async) && (!!item.calc_ev_time_start || !!item.calc_location)">
               <ion-item ion-row text-wrap color="secondary" [hidden]="!item.calc_ev_time_start">
                 <ion-col>
                   {{ 'EVENTS.TIME' | translate }}:
