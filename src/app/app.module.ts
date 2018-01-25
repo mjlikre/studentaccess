@@ -11,9 +11,10 @@ import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { IonicStorageModule } from '@ionic/storage';
-import { StoreModule } from '@ngrx/store';
-import * as app from '../store';
 
+import { StoreModule } from '@ngrx/store';
+import { root, events } from '../store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects';
 import Effects from '../effects';
 
@@ -50,8 +51,11 @@ export function createTranslateLoader(http: HttpClient) {
       }
     }),
     HttpClientModule,
-    StoreModule.forRoot(app),
+    StoreModule.forRoot({ root, events }),
     EffectsModule.forRoot([Effects]),
+    StoreDevtoolsModule.instrument({
+      maxAge: 10,
+    }),
   ],
   bootstrap: [IonicApp],
   entryComponents: [StudentAccess],
