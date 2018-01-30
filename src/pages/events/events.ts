@@ -5,7 +5,7 @@ import {
   Loading,
   LoadingController
 } from 'ionic-angular';
-import { Store, createFeatureSelector, createSelector } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { filter } from 'rxjs/operators';
 
 import * as fromRoot from '../../store';
@@ -16,9 +16,6 @@ import { Log } from '../../providers/log';
 
 import { expand } from '../../components/animations';
 
-interface AppState {
-  events: fromEvents.EventsState;
-}
 
 @IonicPage()
 @Component({
@@ -28,7 +25,7 @@ interface AppState {
 })
 export class Events {
   public events$: Store<any[]>;
-  public selected$: Store<string|null>;
+  public selected$: Store<string | null>;
   public today$: Store<string>
   private loading: Loading = this.loadingCtrl.create();
 
@@ -37,7 +34,7 @@ export class Events {
     private loadingCtrl: LoadingController,
     private oldStore: OldStore,
     private log: Log,
-    private store$: Store<AppState>,
+    private store$: Store<{ events: fromEvents.EventsState }>,
   ) { }
 
   async ionViewDidLoad() {
@@ -52,9 +49,7 @@ export class Events {
     this.store$
       .select(fromEvents.getEventsLoaded)
       .pipe(filter(loaded => loaded))
-      .subscribe(loaded => {
-        this.loading.dismiss();
-      });
+      .subscribe(() => this.loading.dismiss());
   }
 
   goSelected(id) {

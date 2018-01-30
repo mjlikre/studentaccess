@@ -8,7 +8,7 @@
     <ion-title>
       {{ 'STAFF.NAME' | translate }}
     </ion-title>
-    <ion-buttons right [hidden]="selected">
+    <ion-buttons right [hidden]="selected$ | async">
       <button ion-button (click)="toggleSearch()">
         <ion-icon name="search"></ion-icon>
       </button>
@@ -16,10 +16,10 @@
   </ion-navbar>
 </ion-header>
 <ion-content>
-  <ion-toolbar no-border-top color="secondary" [@expand]="showSearch">
+  <ion-toolbar no-border-top color="secondary" [@expand]="showSearch$ | async">
     <ion-searchbar
-      [(ngModel)]="search"
-      (ionInput)="doSearch()"
+      [ngModel]="search$ | async"
+      (ionInput)="doSearch($event)"
       [placeholder]=" 'STAFF.NAME' | translate "
     ></ion-searchbar>
   </ion-toolbar>
@@ -29,12 +29,12 @@
       <ion-col col-12 col-lg-6 col-md-6 offset-md-3 col-sm-12>
         <ion-list>
 
-          <ion-card *ngFor="let item of filteredStaff">
+          <ion-card *ngFor="let item of list$ | async">
             <!-- shows right arrow -->
             <ion-card-header tappable text-wrap (click)="select(item.t_id)">
               <b>{{ item.calc_status }}: </b> {{ item.calc_name }}
             </ion-card-header>
-            <ion-list [@expand]="item.t_id === activePerson && (!!item.calc_phone || !!item.calc_homephone || !!item.calc_email)">
+            <ion-list [@expand]="item.t_id === (selected$ | async) && (!!item.calc_phone || !!item.calc_homephone || !!item.calc_email)">
               <ion-item ion-row text-wrap color="secondary" [hidden]="!item.calc_phone">
                 <b ion-col>
                   {{ 'STAFF.CELLPHONE' | translate }}:

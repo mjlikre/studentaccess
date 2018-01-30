@@ -6,10 +6,15 @@ import {
   LoadingController
 } from 'ionic-angular';
 
-import { Store } from '../../providers/store';
+import { filter } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import * as fromStaff from '../../store/staff';
+
+import { Store as OldStore } from '../../providers/store';
 import { Log } from '../../providers/log';
 
 import { expand } from '../../components/animations';
+import { IonicFormInput } from 'ionic-angular/util/form';
 
 @IonicPage()
 @Component({
@@ -18,54 +23,42 @@ import { expand } from '../../components/animations';
   animations: [ expand ]
 })
 export class Staff {
-  public staff: any[] = [];
-  public filteredStaff: any[] = [];
-  public activePerson: string;
-  public showSearch: boolean = false;
-  public search: string;
+  public selected$;
+  public list$;
+  public showSearch$;
+  public search$;
   private loading: Loading = this.loadingCtrl.create();
 
   constructor(
     private nav: NavController,
     private loadingCtrl: LoadingController,
-    private store: Store,
+    private oldStore: OldStore,
     private log: Log,
+    private store$: Store<{ staff: fromStaff.StaffState }>,
   ){}
 
   async ionViewDidLoad(){
     await this.loading.present();
-    try {
-      let staff = await this.store.get('STAFF');
-      this.filteredStaff = this.staff = staff.staff_list;
-    } catch(err){
-      this.log.warn(err);
-    }
-    this.loading.dismiss();
-  }
-  select(item){
-    if( this.activePerson === item ){
-      this.activePerson = undefined;
-    } else {
-      this.activePerson = item;
-    }
-  }
 
-  toggleSearch(){
-    this.showSearch = !this.showSearch;
-    if( !this.showSearch && this.filteredStaff !== this.staff ){
-      this.search = '';
-      this.filteredStaff = this.staff;
-    }
+    this.selected$ = this.store$.select(fromStaff.getSelected);
+    this.list$ = this.store$.select(fromStaff.getFilteredList);
+    this.showSearch$ = this.store$.select(fromStaff.getShowSearch);
+    this.search$ = this.store$.select(fromStaff.getSearchQuery);
+
+    this.store$.dispatch(new fromStaff.Load());
+
+    this.store$
+      .select(fromStaff.getLoaded)
+      .pipe(filter(loaded => loaded))
+      .subscribe(() => this.loading.dismiss());
   }
-  doSearch(){
-    try {
-      let query: string = this.search.toLowerCase().trim();
-      this.filteredStaff = this.staff.filter( el =>
-        el.calc_name.toLowerCase().indexOf( query ) > -1 ||
-        el.calc_status.toLowerCase().indexOf( query ) > -1
-      );
-    } catch(e){
-      this.log.error(e);
-    }
+  select(id){
+    this.store$.dispatch(new fromStaff.SetSelected(id));
+  }
+  toggleSearch(){
+    this.store$.dispatch(new fromStaff.ToggleSearch());
+  }
+  doSearch(event){
+    this.store$.dispatch(new fromStaff.SetSearchQuery(event.target.value))
   }
 }

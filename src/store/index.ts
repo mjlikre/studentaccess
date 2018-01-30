@@ -1,6 +1,7 @@
 import { createSelector, createFeatureSelector, Action } from '@ngrx/store';
 
 export { default as events } from './events';
+export { default as staff } from './staff';
 
 export const SET_TODAY = '[Root] SET_TODAY';
 

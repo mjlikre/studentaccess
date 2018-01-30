@@ -13,31 +13,34 @@ import * as fromStaff from '../store/staff';
 export default class Effects {
   constructor(private actions$: Actions, private oldStore: OldStore) { }
 
+  loadFactory(type, load, success, fail) {
+    return this.actions$.ofType(load).pipe(
+      switchMap((action: any) => fromPromise(this.oldStore.get(type)).pipe(
+        map(payload => ({
+          type: success,
+          payload,
+        })),
+        catchError(payload => of({
+          type: fail,
+          payload,
+        })),
+      )),
+    );
+  }
+
   @Effect()
-  public loadEvents = this.actions$.ofType(fromEvents.LOAD).pipe(
-    switchMap((action: any) => fromPromise(this.oldStore.get('EVENTS')).pipe(
-      map(payload => ({
-        type: fromEvents.LOAD_SUCCESS,
-        payload,
-      })),
-      catchError(err => of({
-        type: fromEvents.LOAD_FAIL,
-        payload: err,
-      })),
-    ))
+  public loadEvents = this.loadFactory(
+    'EVENTS',
+    fromEvents.LOAD,
+    fromEvents.LOAD_SUCCESS,
+    fromEvents.LOAD_FAIL,
   );
 
   @Effect()
-  public loadStaff = this.actions$.ofType(fromEvents.LOAD).pipe(
-    switchMap((action: any) => fromPromise(this.oldStore.get('STAFF')).pipe(
-      map(events => ({
-        type: fromStaff.LOAD_SUCCESS,
-        payload: events.events,
-      })),
-      catchError(err => of({
-        type: fromStaff.LOAD_FAIL,
-        payload: err,
-      })),
-    ))
+  public loadStaff = this.loadFactory(
+    'STAFF',
+    fromStaff.LOAD,
+    fromStaff.LOAD_SUCCESS,
+    fromStaff.LOAD_FAIL,
   );
 }
