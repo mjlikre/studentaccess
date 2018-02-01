@@ -51,7 +51,7 @@ export function createTranslateLoader(http: HttpClient) {
       }
     }),
     HttpClientModule,
-    StoreModule.forRoot({ root }),
+    StoreModule.forRoot({ root: rootReducer }),
     EffectsModule.forRoot([Effects]),
     StoreDevtoolsModule.instrument({
       maxAge: 10,
