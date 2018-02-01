@@ -8,12 +8,12 @@ export interface RootState {
 
 export class SetToday implements Action {
   readonly type = SET_TODAY;
-  constructor(public payload: string){}
+  constructor(public payload: string) {}
 }
 
 type All = SetToday;
 
-export function rootReducer(state: RootState, action: All) {
+export function rootReducer(state: RootState = { today: null }, action: All) {
   switch (action.type) {
     case SET_TODAY:
       return {
