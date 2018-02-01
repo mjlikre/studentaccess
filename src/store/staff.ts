@@ -43,7 +43,7 @@ export interface StaffState {
   searchQuery: string;
 }
 const initialState = { selected: null, list: [], showSearch: false, searchQuery: '' };
-export default function (state: StaffState = initialState, action: All) {
+export function staffReducer(state: StaffState = initialState, action: All) {
   switch (action.type) {
     case SET_SELECTED:
       return {

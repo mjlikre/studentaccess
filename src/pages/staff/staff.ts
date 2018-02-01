@@ -34,7 +34,7 @@ export class Staff {
     private loadingCtrl: LoadingController,
     private oldStore: OldStore,
     private log: Log,
-    private store$: Store<{ staff: fromStaff.StaffState }>,
+    private store$: Store<fromStaff.StaffState>,
   ){}
 
   async ionViewDidLoad(){

@@ -1,8 +1,5 @@
 import { createSelector, createFeatureSelector, Action } from '@ngrx/store';
 
-export { default as events } from './events';
-export { default as staff } from './staff';
-
 export const SET_TODAY = '[Root] SET_TODAY';
 
 export interface RootState {
@@ -16,7 +13,7 @@ export class SetToday implements Action {
 
 type All = SetToday;
 
-export function root(state: RootState, action: All) {
+export function rootReducer(state: RootState, action: All) {
   switch (action.type) {
     case SET_TODAY:
       return {

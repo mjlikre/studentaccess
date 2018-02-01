@@ -34,7 +34,7 @@ export class Events {
     private loadingCtrl: LoadingController,
     private oldStore: OldStore,
     private log: Log,
-    private store$: Store<{ events: fromEvents.EventsState }>,
+    private store$: Store<fromEvents.EventsState>,
   ) { }
 
   async ionViewDidLoad() {

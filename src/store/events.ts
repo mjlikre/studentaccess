@@ -30,7 +30,7 @@ export class LoadFail implements Action {
 
 type All = SetSelected | Load | LoadSuccess | LoadFail;
 
-export default function (state: EventsState = { selected: null, list: [] }, action: All) {
+export function eventsReducer(state: EventsState = { selected: null, list: [] }, action: All) {
   switch (action.type) {
     case SET_SELECTED:
       return {
