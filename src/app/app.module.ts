@@ -14,6 +14,7 @@ import { IonicStorageModule } from '@ionic/storage';
 
 import { StoreModule } from '@ngrx/store';
 import { rootReducer } from '../store';
+import { homeworkReducer } from '../store/homework';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { EffectsModule } from '@ngrx/effects';
 import Effects from '../effects';
@@ -51,7 +52,7 @@ export function createTranslateLoader(http: HttpClient) {
       }
     }),
     HttpClientModule,
-    StoreModule.forRoot({ root: rootReducer }),
+    StoreModule.forRoot({ root: rootReducer, homework: homeworkReducer }),
     EffectsModule.forRoot([Effects]),
     StoreDevtoolsModule.instrument({
       maxAge: 10,
