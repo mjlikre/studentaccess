@@ -1,7 +1,7 @@
 {
   "rules": {
     "no-duplicate-variable": true,
-    "no-unused-variable": [ true, { "ignore-pattern":"^[^a-z]*$" } ]
+    "no-unused-variable": [true, { "ignore-pattern":"^[^a-z]*$" }]
   },
   "rulesDirectory": [
     "node_modules/tslint-eslint-rules/dist/rules"

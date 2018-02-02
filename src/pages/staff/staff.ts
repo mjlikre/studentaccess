@@ -6,7 +6,7 @@ import {
   LoadingController
 } from 'ionic-angular';
 
-import { filter } from 'rxjs/operators';
+import { filter, first } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import * as fromStaff from '../../store/staff';
 
@@ -49,7 +49,7 @@ export class Staff {
 
     this.store$
       .select(fromStaff.getLoaded)
-      .pipe(filter(loaded => loaded))
+      .pipe(filter(loaded => loaded), first())
       .subscribe(() => this.loading.dismiss());
   }
   select(id){

@@ -17,8 +17,9 @@
     <ion-title>{{ 'HOMEWORK.HIDE_CHECKED' | translate }}</ion-title>
     <ion-buttons end>
       <ion-toggle
-        [(ngModel)]="hideChecked"
+        [ngModel]="hideChecked$ | async"
         [name]="'HOMEWORK.HIDE_CHECKED' | translate"
+        (ionChange)="toggleHideChecked($event)"
       ></ion-toggle>
     </ion-buttons>
   </ion-toolbar>
@@ -35,9 +36,9 @@
         <ion-list>
           <ion-item
             text-wrap
-            *ngFor="let item of filteredHw"
+            *ngFor="let item of homework$ | async"
             [class.gray]="item.lsn_date === store.today"
-            [@expand]="!( item.checked && hideChecked )"
+            [@expand]="!( item.checked && (hideChecked$ | async) )"
           >
             <ion-label>
               {{ item.calc_date }}
@@ -47,8 +48,8 @@
             </ion-label>
             <ion-checkbox
               color="primary"
-              [(ngModel)]="item.checked"
-              (ngModelChange)="check(item)"
+              [checked]="item.checked"
+              (ionChange)="check(item)"
             ></ion-checkbox>
           </ion-item>
         </ion-list>

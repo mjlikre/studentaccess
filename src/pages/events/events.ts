@@ -6,7 +6,7 @@ import {
   LoadingController
 } from 'ionic-angular';
 import { Store } from '@ngrx/store';
-import { filter } from 'rxjs/operators';
+import { filter, first } from 'rxjs/operators';
 
 import * as fromRoot from '../../store';
 import * as fromEvents from '../../store/events';
@@ -48,7 +48,7 @@ export class Events {
 
     this.store$
       .select(fromEvents.getEventsLoaded)
-      .pipe(filter(loaded => loaded))
+      .pipe(filter(loaded => loaded), first())
       .subscribe(() => this.loading.dismiss());
   }
 

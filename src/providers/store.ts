@@ -19,27 +19,27 @@ export class Store {
     private storage: Storage.Storage,
     private state: State,
     private log: Log,
-  ){
+  ) {
     this.log.info('new Store()');
-    let month = ('0' + ( this.date.getMonth() + 1 ).toString() ).slice(-2);
-    let day = ('0' + this.date.getDate().toString() ).slice(-2);
+    let month = ('0' + (this.date.getMonth() + 1).toString()).slice(-2);
+    let day = ('0' + this.date.getDate().toString()).slice(-2);
     let year = this.date.getFullYear().toString();
     this.today = `${year}-${month}-${day}`;
     this.keys = this.state.keys;
   }
-  private fromApi( el: IKey, modifier: Function, oldData?: any ): Promise<any> {
-    let url = this.buildUrl( el.url, el.query, el.queryParams );
+  private fromApi(el: IKey, modifier: Function, oldData?: any): Promise<any> {
+    let url = this.buildUrl(el.url, el.query, el.queryParams);
     return this.http.get(url, { responseType: 'text' })
       .toPromise()
-      .then( text => {
+      .then(text => {
         try {
           let json: object = JSON.parse(text);
           return json;
-        } catch(e) {
+        } catch (e) {
           return text;
         }
       })
-      .then( newData => {
+      .then(newData => {
         let modifiedData = !modifier ? newData : modifier({
           newData,
           oldData
@@ -49,99 +49,90 @@ export class Store {
           data: modifiedData
         });
         return modifiedData;
-      })
-      .catch( err => {
-        this.log.warn(err);
-        return oldData;
       });
   }
 
-  public async get( key: string, modifier?: Function, refresh = false ): Promise<any> {
-    try {
-      if( key === 'USER' ){ return this.getUser(); }
+  public async get(key: string, modifier?: Function, refresh = false): Promise<any> {
+    if (key === 'USER') { return this.getUser(); }
 
-      // from the state
-      let storeItem = this.state.get(key);
+    // from the state
+    let storeItem = this.state.get(key);
 
-      let keyItem = this.keys.find( el => el.key === key );
+    let keyItem = this.keys.find(el => el.key === key);
 
-      // not in memory, not in storage, from api
-      if( !storeItem ){
-        return this.fromApi( keyItem, modifier );
-      }
+    // not in memory, not in storage, from api
+    if (!storeItem) {
+      return this.fromApi(keyItem, modifier);
+    }
 
-      let valid: boolean;
-      switch( keyItem.valid ){
-        case 'DAY':
-          valid = this.date.getDate() === new Date(storeItem.date).getDate();
-          break;
-        case 'WEEK':
-          valid = currentWeekNumber(this.date) === currentWeekNumber( new Date(storeItem.date) );
-          break;
-        case 'MONTH':
-          valid = this.date.getMonth() === new Date(storeItem.date).getMonth();
-          break;
-        default:
-          throw Error('Store: Unknown Mode');
-      }
-      //check validity
-      if( valid && !refresh ){
-        return storeItem.data;
-      } else {
-        return this.fromApi( keyItem, modifier, storeItem.data );
-      }
-    } catch(e){
-      this.log.warn(e);
-      return;
+    let valid: boolean;
+    switch (keyItem.valid) {
+      case 'DAY':
+        valid = this.date.getDate() === new Date(storeItem.date).getDate();
+        break;
+      case 'WEEK':
+        valid = currentWeekNumber(this.date) === currentWeekNumber(new Date(storeItem.date));
+        break;
+      case 'MONTH':
+        valid = this.date.getMonth() === new Date(storeItem.date).getMonth();
+        break;
+      default:
+        throw Error('Store: Unknown Mode');
+    }
+    //check validity
+    if (valid && !refresh) {
+      return storeItem.data;
+    } else {
+      return this.fromApi(keyItem, modifier, storeItem.data);
     }
   }
 
-  private buildUrl( url: string, query: string, queryParams: string[] = [] ): string {
-    if( url ){ return url; }
+  private buildUrl(url: string, query: string, queryParams: string[] = []): string {
+    if (url) { return url; }
 
     let extraParams = queryParams.join('&');
 
     let user = (this.state.get('USER') || { data: {} } as StoredItem<StoredUser>).data as StoredUser;
-    return `${this.api}?query=${query}&lang=${user.language}&username=${user.username}&password=${user.password}&mode=student&${ extraParams }`;
+    return `${this.api}?query=${query}&lang=${user.language}&username=${user.username}&password=${user.password}&mode=student&${extraParams}`;
   }
 
-  private async getUser(){
+  private async getUser() {
     try {
       let user;
       user = this.state.get('USER');
-      if( !user ){
+      if (!user) {
         let state = await this.storage.get('STATE');
         user = state.USER;
-        this.log.debug('getUser: ',state)
+        this.log.debug('getUser: ', state)
       }
-      if( user && this.date.getMonth() === new Date(user.date).getMonth() ){
+      if (user && this.date.getMonth() === new Date(user.date).getMonth()) {
         return user.data;
       } else {
         return null;
       }
-    } catch(e){
+    } catch (e) {
       this.log.warn(e);
     }
   }
-  public async getLogin(){
+  public async getLogin() {
     let login = this.state.get('LOGIN');
-    if( login && this.date.getMonth() === new Date(login.date).getMonth() ){
+    if (login && this.date.getMonth() === new Date(login.date).getMonth()) {
       return login.data;
     } else {
       return null;
     }
   }
-  public persist(){
+  public persist() {
     this.state.save();
   }
-  public setUser(user){
+  public setUser(user) {
     this.state.set('USER', {
       date: this.date,
       data: user
     });
   }
   public clear(): Promise<void> {
-    return this.storage.clear().then( () => {
+    return this.storage.clear().then(() => {
       this.log.debug('cleared storage')
       return this.state.clear();
     });

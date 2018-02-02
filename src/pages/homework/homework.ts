@@ -9,24 +9,31 @@ import {
 } from 'ionic-angular';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Store } from '../../providers/store';
+import { Store as OldStore } from '../../providers/store';
 import { Auth } from '../../providers/auth';
 import { Log } from '../../providers/log';
 
 import { expand } from '../../components/animations';
 
+import { Store } from '@ngrx/store';
+import * as fromHomework from '../../store/homework';
+import { withLatestFrom, first, filter } from 'rxjs/operators';
+
 @IonicPage()
 @Component({
   selector: 'page-homework',
   templateUrl: 'homework.html',
-  animations: [ expand ]
+  animations: [expand]
 })
 export class Homework {
-  homework: Array<{calc_class: string, calc_date: string, lsn_date: string, lsn_hw: string, lsn_id: string}> = [];
+  homework: Array<{ calc_class: string, calc_date: string, lsn_date: string, lsn_hw: string, lsn_id: string }> = [];
   classes: any[];
+  public classes$: Store<Array<string>>;
   filteredHw: any[] = [];
+  public homework$: Store<Array<fromHomework.Lesson>>;
   selectedClass: string = 'all-classes';
-  hideChecked: boolean = true;
+  public selectedClass$: Store<string>;
+  public hideChecked$: Store<boolean>;
   loading: Loading = this.loadingCtrl.create();
 
   constructor(
@@ -34,81 +41,71 @@ export class Homework {
     private alert: AlertController,
     private loadingCtrl: LoadingController,
 
-    private store: Store,
+    private store: OldStore,
     private log: Log,
-  ){}
+    private store$: Store<fromHomework.HomeworkState>,
+  ) { }
 
-  public async ionViewDidEnter(){
+  async ionViewDidLoad() {
     await this.loading.present();
-    await this.get();
-    this.loading.dismiss();
-  }
-  async get( refresh = false ){
-    try {
-      let hw = await this.store.get(
-        'HOMEWORK',
-        ({ newData, oldData = { homework: [] } }) => ({
-          ...newData,
-          homework: newData.homework.map( item => {
-            if( oldData.homework.find( el => item.lsn_id === el.lsn_id && el.checked ) ){
-              item.checked = true;
-            }
-            return item;
-          } )
-        }),
-        refresh,
-      );
-      // this.homework serves as a backup
-      // this.filteredHw is presented in view
-      this.filteredHw = this.homework = hw.homework.slice(0).reverse();
-    } catch(err){
-      this.log.warn(err);
-    }
+    this.hideChecked$ = this.store$.select(fromHomework.getHideChecked);
+    this.selectedClass$ = this.store$.select(fromHomework.getSelectedClass);
+    this.homework$ = this.store$.select(fromHomework.getHomeworkList);
+    this.classes$ = this.store$.select(fromHomework.getClassList);
+    this.store$.dispatch(new fromHomework.Load());
+    this.store$
+      .select(fromHomework.getLoaded)
+      .pipe(filter(loaded => loaded), first())
+      .subscribe(() => this.loading.dismiss());
   }
 
-  popover(e){
-    this.classes = this.homework
-      .filter( (el, i, arr) => arr.findIndex( t => t.calc_class === el.calc_class ) === i )
-      .map( el => ({
-        type: 'radio',
-        label: el.calc_class,
-        value: el.calc_class
-      }) );
-    this.classes.push({
-      type: 'radio',
-      label: this.translate.instant('HOMEWORK.ALL_CLASSES'),
-      value: 'all-classes'
-    });
-    this.alert.create({
-      title: this.translate.instant('HOMEWORK.TITLE'),
-      buttons: [
-        this.translate.instant('GLOBAL.CANCEL'),
-        {
-          text: this.translate.instant('GLOBAL.OK'),
-          handler: className => {
-            this.selectedClass = className;
-            if( className === 'all-classes' ){
-              this.filteredHw = this.homework;
-            } else {
-              this.filteredHw = this.homework.filter( hw => className === hw.calc_class );
+  public popover(e) {
+    this.classes$
+      .pipe(withLatestFrom(
+        this.selectedClass$,
+        this.translate.get('HOMEWORK.ALL_CLASSES'),
+        this.translate.get('HOMEWORK.TITLE'),
+        this.translate.get('GLOBAL.CANCEL'),
+        this.translate.get('GLOBAL.OK'),
+      ), first())
+      .subscribe(([list, selectedClass, allClasses, pageTitle, cancel, ok]) => {
+        const inputs = list.map(name => ({
+          type: 'radio',
+          label: name,
+          value: name,
+        })).concat({
+          type: 'radio',
+          label: allClasses,
+          value: null,
+        }).map(button => ({
+          ...button,
+          checked: button.value === selectedClass
+        }));
+
+        return this.alert.create({
+          title: pageTitle,
+          inputs,
+          buttons: [
+            cancel,
+            {
+              text: ok,
+              handler: name => this.store$.dispatch(new fromHomework.SetSelectedClass(name)),
             }
-          }
-        }
-      ],
-      inputs: this.classes.map( button => ({
-        ...button,
-        checked: button.value === this.selectedClass
-      }) )
-    }).present();
-  }
-  public check( item ){
-    let index = this.homework.findIndex( el => el.lsn_id === item.lsn_id );
-    this.homework[index] = item;
-    this.store.persist();
+          ],
+        }).present();
+      });
   }
 
-  async refresh( refresher: Refresher ){
-    await this.get(true);
+  public check(item) {
+    this.store$.dispatch(new fromHomework.ToggleLesson(item));
+  }
+
+  public refresh(refresher: Refresher) {
+    this.store$.dispatch(new fromHomework.Load(true));
     refresher.complete();
+  }
+
+  public toggleHideChecked(event) {
+    this.store$.dispatch(new fromHomework.ToggleHideChecked(event.checked));
   }
 }
